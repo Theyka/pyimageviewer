@@ -65,6 +65,7 @@ async def index():
                                 <meta name="twitter:image:src" content="{request.url_root}{url_for('static', filename='image/'+request.args.get("id"))}">
                                 <meta property="og:image" content="{request.url_root}{url_for('static', filename='image/'+request.args.get("id"))}">
                                 <meta name="theme-color" content="#e69e0a">
+                                <meta property="og:title" content="Theyka.net" />
                                 <meta property="og:site_name" content="{request.args.get('id')}">
                                 <meta name="twitter:site" content="{request.args.get('id')}">
                             </head>
