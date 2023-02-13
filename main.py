@@ -1,12 +1,20 @@
-# Webserver imports
+# Webserver Imports
 from quart import Quart, request, app, url_for, render_template
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
 
-# User imports
+# User Imports
 import asyncio
 import datetime
 import os
+
+# Image Imports
+from PIL import Image
+import random
+
+# Settings
+TITLE = "Theyka.net"
+PORT = "80"
 
 # WebServer Application
 app = Quart(__name__, static_folder='static')
@@ -16,6 +24,23 @@ async def index():
     try:
         if request.args.get('id'):
             if os.path.exists(f"./static/image/{request.args.get('id')}"):
+                # Load image
+                image = Image.open(f'./static/image/{request.args.get("id")}')
+
+                #Draft
+                image.draft('RGB', (1008, 756))
+                # Get pixels
+                pixels = list(image.getdata())
+
+                # Store RGB values in a list
+                rgb_list = [pixel[:3] for pixel in pixels]
+
+                # Select a random RGB value
+                random_rgb = random.choice(rgb_list)
+
+                # Convert RGB to hex
+                hex_color = '#{:02x}{:02x}{:02x}'.format(*random_rgb)
+
                 return f"""
                         <html lang="en">
                             <head>
@@ -59,15 +84,21 @@ async def index():
                                 <meta name="robots" content="noindex">
                                 <link rel="stylesheet" href="{url_for('static', filename='css/argon.css')}">
                                 <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.15.3/css/all.css">
-                                <title>Theyka.net - {request.args.get('id')}</title>
+                                <title>{TITLE} - {request.args.get('id')}</title>
+                                
                                 <meta name="twitter:card" content="summary_large_image">
                                 <meta name="twitter:image" content="{request.url_root}{url_for('static', filename='image/'+request.args.get("id"))}">
                                 <meta name="twitter:image:src" content="{request.url_root}{url_for('static', filename='image/'+request.args.get("id"))}">
-                                <meta property="og:image" content="{request.url_root}{url_for('static', filename='image/'+request.args.get("id"))}">
-                                <meta name="theme-color" content="#e69e0a">
-                                <meta property="og:title" content="Theyka.net" />
-                                <meta property="og:site_name" content="{request.args.get('id')}">
                                 <meta name="twitter:site" content="{request.args.get('id')}">
+                                
+                                <meta property="og:image" content="{request.url_root}{url_for('static', filename='image/'+request.args.get("id"))}">
+                                
+                                <meta property="og:title" content="{TITLE}" />
+                                <meta property="og:url" content="{request.url_root}?id={request.args.get("id")}" />
+                                <meta property="og:site_name" content="{request.args.get('id')}">
+                                
+                                <meta name="theme-color" content="{hex_color}">
+                                <link rel="icon" type="image/jpeg" href="{request.url_root}{url_for('static', filename='image/'+request.args.get("id"))}">
                             </head>
                             <body>
                                 <div class="row mt-5 no-gutters">
@@ -107,6 +138,6 @@ async def index():
 if __name__ == "__main__":
     # Hypercorn configuration
     config = Config()
-    config.bind = "0.0.0.0:25997"
+    config.bind = f"0.0.0.0:{PORT}"
     # Start Server
     asyncio.run(serve(app, config=config))
